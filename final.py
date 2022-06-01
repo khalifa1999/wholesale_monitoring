@@ -52,6 +52,15 @@ def ecooking(sheet):
         return df
 
 
+@st.experimental_memo(suppress_st_warning=True)
+def balance(sheet):
+    df = pd.read_excel(uploaded_file, sheet_name=sheet, engine='openpyxl')
+    # df['AVRIL'] = df['AVRIL'].apply(str)
+    return df
+
+
+i = 1
+
 if uploaded_file:
     st.markdown('---')
     # sidebar list for differents columns
@@ -62,6 +71,8 @@ if uploaded_file:
     )
 
     ecooking(sheet_selector)
+    balance = balance('balance')
+
     if sheet_selector == 'Entrant':
         groupby_column = st.selectbox(
             'What would you like to analyse? 🧠',
@@ -134,6 +145,7 @@ if uploaded_file:
         st.plotly_chart(pie)
         st.plotly_chart(area)
         st.write(merge)
+        st.write(original)
 
 
 
@@ -216,10 +228,12 @@ if uploaded_file:
         st.plotly_chart(scatter_3d)
         st.plotly_chart(scatter)
 
-
         # Download function
         list_of_chart = {'camembert': tarte, 'scatter': scatter, 'scatter_3d': scatter_3d}
         download_plot = st.sidebar.selectbox('select the plot you want to download',
                                              list_of_chart.keys())
-        generate_html_download_link(list_of_chart.get(download_plot))
-        st.balloons()
+        if i > 0:
+            generate_html_download_link(list_of_chart.get(download_plot))
+            i -= 1
+        else:
+            pass
