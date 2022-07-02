@@ -3,7 +3,8 @@ import pandas as pd  # pip install pandas
 import plotly.express as px  # pip install plotly-express
 import base64  # Standard Python Module
 from io import StringIO, BytesIO  # Standard Python Module
-from PIL import Image
+from main_app import kimiwa
+
 
 
 def generate_excel_download_link(df):
@@ -26,11 +27,10 @@ def generate_html_download_link(fig):
     return st.markdown(href, unsafe_allow_html=True)
 
 
-st.set_page_config(page_title='Sonatel Wholesale Trend Analyser')
 st.title('Wholesale Monitoring app 📈')
 st.subheader('Feed me with your Excel file')
 st.image('sonatel.jpg', caption='Developed by Khalifa Mamadou NIAMADIO')
-uploaded_file = st.sidebar.file_uploader('Choose a XLSX file', type=['xlsx', 'xlsb'])
+uploaded_file = kimiwa()
 
 # Variables globales
 
@@ -41,7 +41,10 @@ Sortant = {'BILLING_OPERATOR_N': 'BILLING_OPERATOR_N', 'Période': 'Période',
 liste = {'Entrant': 'Input_Entrant', 'Sortant': 'Input_Sortant'}
 
 
-@st.experimental_memo(suppress_st_warning=True)
+# uploaded_file = st.sidebar.file_uploader('Choose a XLSX file', type=['xlsx', 'xlsb'])
+
+
+@st.experimental_memo
 def ecooking(sheet):
     if sheet == 'Input_Entrant':
         df = pd.read_excel(uploaded_file, sheet_name=sheet, engine='openpyxl')
@@ -52,7 +55,7 @@ def ecooking(sheet):
         return df
 
 
-@st.experimental_memo(suppress_st_warning=True)
+@st.experimental_memo
 def balance(sheet):
     df = pd.read_excel(uploaded_file, sheet_name=sheet, engine='openpyxl')
     # df['AVRIL'] = df['AVRIL'].apply(str)
@@ -61,7 +64,7 @@ def balance(sheet):
 
 i = 1
 
-if uploaded_file:
+if uploaded_file is not None:
     st.markdown('---')
     # sidebar list for differents columns
     # Only got two for the moment entrant and sortant
@@ -147,6 +150,13 @@ if uploaded_file:
         st.write(merge)
         st.write(original)
 
+        # Radar chart test
+        a = original.groupby(['BILLING_OPERATOR_N'])['Financier'].sum()
+        b = original.groupby(['BILLING_OPERATOR_N'])['CHARGED_USAGE_D'].sum()
+        radar = pd.merge(left=a, right=b, left_on='BILLING_OPERATOR_N',
+                         right_on='BILLING_OPERATOR_N').nlargest(2, 'Financier')
+        radar['Cout unitaire moyen'] = original['Financier']
+        st.write(radar)
 
 
     elif sheet_selector == "Sortant":
